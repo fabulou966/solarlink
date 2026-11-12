@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProjectForm, { type ProjectFormValues } from "@/components/admin/ProjectForm";
 import PhotoManager, { type Photo } from "@/components/admin/PhotoManager";
+import BoqManager from "@/components/admin/BoqManager";
 import { requireAdmin } from "@/lib/admin/auth";
-import { publicPhotoUrl, thumbUrl } from "@/lib/images";
+import { publicDocUrl, publicPhotoUrl, thumbUrl } from "@/lib/images";
 
 export const instant = false;
 
@@ -28,6 +29,7 @@ type Row = {
   city: string | null;
   installed_on: string | null;
   cover_image: string | null;
+  boq_path: string | null;
   published: boolean;
   project_images: ImageRow[] | null;
 };
@@ -50,7 +52,7 @@ export default async function EditProjectPage({
   const { data } = await supabase
     .from("projects")
     .select(
-      "id, slug, title_ar, title_en, description_ar, description_en, system_kw, pv_kwp, battery_kwh, city, installed_on, cover_image, published, project_images(id, path, caption_ar, caption_en, sort_order)",
+      "id, slug, title_ar, title_en, description_ar, description_en, system_kw, pv_kwp, battery_kwh, city, installed_on, cover_image, boq_path, published, project_images(id, path, caption_ar, caption_en, sort_order)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -110,6 +112,12 @@ export default async function EditProjectPage({
       {saved && <p className="alert ok">Changes saved.</p>}
 
       <ProjectForm mode="edit" values={values} />
+
+      <BoqManager
+        projectId={p.id}
+        boqPath={p.boq_path}
+        boqUrl={publicDocUrl(p.boq_path)}
+      />
 
       <PhotoManager projectId={p.id} images={photos} coverPath={p.cover_image} />
     </>

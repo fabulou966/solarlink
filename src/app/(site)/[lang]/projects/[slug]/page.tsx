@@ -115,6 +115,16 @@ export default async function ProjectPage({
             </div>
           )}
 
+          <div className="boqrow">
+            {p.boqUrl ? (
+              <a className="btn" href={p.boqUrl} target="_blank" rel="noreferrer">
+                {t.downloadBoq}
+              </a>
+            ) : (
+              <p className="boqmissing">{t.boqMissing}</p>
+            )}
+          </div>
+
           {p.images.length > 0 && (
             <section>
               <h2>{t.photos}</h2>

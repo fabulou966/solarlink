@@ -10,7 +10,9 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { PROJECTS_TAG } from "@/lib/data/projects";
 
 const BUCKET = "project-photos";
+const DOCS_BUCKET = "project-docs";
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_BOQ_BYTES = 10 * 1024 * 1024;
 const MAX_FILES = 8;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
@@ -188,6 +190,72 @@ export async function deleteProject(fd: FormData) {
 
   refreshPublicPages();
   revalidatePath("/admin");
+}
+
+// ── BOQ (bill of quantities) ────────────────────────────────────
+
+export async function uploadBoq(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase } = await requireAdmin();
+  const projectId = str(fd, "project_id", 40);
+  if (!projectId) return { error: "Missing project id." };
+
+  const file = fd.get("boq");
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose a PDF file." };
+  if (file.size > MAX_BOQ_BYTES) return { error: "The PDF is larger than 10 MB." };
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    return { error: "The BOQ must be a PDF." };
+  }
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("boq_path")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (!project) return { error: "Project not found." };
+
+  const path = `boq/${projectId}/${crypto.randomUUID().slice(0, 8)}.pdf`;
+  const { error: uploadError } = await supabaseAdmin()
+    .storage.from(DOCS_BUCKET)
+    .upload(path, Buffer.from(await file.arrayBuffer()), {
+      contentType: "application/pdf",
+      cacheControl: "31536000",
+    });
+  if (uploadError) return { error: `Upload failed: ${uploadError.message}` };
+
+  const { error } = await supabase.from("projects").update({ boq_path: path }).eq("id", projectId);
+  if (error) {
+    await supabaseAdmin().storage.from(DOCS_BUCKET).remove([path]);
+    return { error: error.message };
+  }
+
+  // Replacing the file: drop the previous object (best effort).
+  const previous = (project as { boq_path: string | null }).boq_path;
+  if (previous) await supabaseAdmin().storage.from(DOCS_BUCKET).remove([previous]);
+
+  refreshPublicPages();
+  revalidatePath(`/admin/projects/${projectId}`);
+  return { ok: true };
+}
+
+export async function removeBoq(fd: FormData) {
+  const { supabase } = await requireAdmin();
+  const projectId = str(fd, "project_id", 40);
+  if (!projectId) return;
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("boq_path")
+    .eq("id", projectId)
+    .maybeSingle();
+  const path = (project as { boq_path: string | null } | null)?.boq_path;
+  if (!path) return;
+
+  await supabaseAdmin().storage.from(DOCS_BUCKET).remove([path]);
+  const { error } = await supabase.from("projects").update({ boq_path: null }).eq("id", projectId);
+  if (error) throw new Error(error.message);
+
+  refreshPublicPages();
+  revalidatePath(`/admin/projects/${projectId}`);
 }
 
 // ── Photos ──────────────────────────────────────────────────────

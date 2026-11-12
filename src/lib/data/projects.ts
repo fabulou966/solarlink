@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { cacheLife, cacheTag } from "next/cache";
 import { supabasePublic } from "@/lib/supabase/public";
-import { publicPhotoUrl, thumbUrl } from "@/lib/images";
+import { publicDocUrl, publicPhotoUrl, thumbUrl } from "@/lib/images";
 import { fallbackProjects, type Project, type Spec } from "@/lib/projects";
 
 export const PROJECTS_TAG = "projects";
@@ -28,6 +28,7 @@ type ProjectRow = {
   city: string | null;
   installed_on: string | null;
   cover_image: string | null;
+  boq_path: string | null;
   published: boolean;
   created_at: string;
   project_images: ImageRow[] | null;
@@ -131,7 +132,7 @@ export function rowToProject(row: ProjectRow): Project {
     cover: coverSrc,
     coverThumb,
     ogImage: existsSync(ogPath) ? `/og/${row.slug}.jpg` : "/og/site.jpg",
-    boqUrl: null,
+    boqUrl: row.boq_path ? publicDocUrl(row.boq_path) : null,
   };
 }
 
