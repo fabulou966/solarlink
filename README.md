@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SolarLink
 
-## Getting Started
+Bilingual (Arabic / English) site for a solar installation business, with a
+Supabase-backed admin for projects, photos, BOQ PDFs and quote requests.
 
-First, run the development server:
+- **Public site:** `/[lang]` and `/[lang]/projects/[slug]` (`ar` is the default locale)
+- **Admin:** `/admin` (Supabase Auth + allow-list, never indexed)
+- **Content:** Supabase Postgres + two public storage buckets (`project-photos`, `project-docs`)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js 16 (App Router, Cache Components, Turbopack) + React 19
+- Tailwind CSS 4 (via `@tailwindcss/turbopack`) + self-hosted Cairo font
+- Supabase (`@supabase/ssr`, `@supabase/supabase-js`)
+- `sharp` for server-side image resizing to WebP
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> This Next.js version has breaking changes. Before writing code, read the
+> relevant guide in `node_modules/next/dist/docs/` (see `AGENTS.md`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Local setup
 
-## Learn More
+1. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Copy `.env.example` to `.env.local` and fill in the three values from
+   Supabase → Project Settings → API:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=
+   SUPABASE_SERVICE_ROLE_KEY=   # server only, never commit
+   ```
 
-## Deploy on Vercel
+   `.env.local` ships with placeholders so the site can run offline in
+   development (it falls back to the seed project in `src/lib/projects.ts`).
+   Replace them with real values to use Supabase.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. Create the database schema in the Supabase SQL editor, in order:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   - `supabase/step3.sql` — tables, RLS, `is_admin()`, storage buckets, seed row
+   - `supabase/step4-boq.sql` — `boq_path` column and `project-docs` bucket
+
+4. Create an admin user in Supabase → Authentication → Users, then add it to
+   the allow-list (replace the email):
+
+   ```sql
+   insert into public.admins (user_id, email)
+   select id, email from auth.users where email = 'you@example.com'
+   on conflict (user_id) do update set email = excluded.email;
+   ```
+
+5. Upload the existing project photos and verify the seed data:
+
+   ```bash
+   npm run seed
+   ```
+
+6. Start the dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+   - Site: http://localhost:3000 (redirects to `/ar`)
+   - Admin: http://localhost:3000/admin
+
+## Scripts
+
+| Script              | What it does                                                        |
+| ------------------- | ------------------------------------------------------------------- |
+| `npm run dev`       | Start the dev server (Turbopack)                                    |
+| `npm run build`     | Production build                                                    |
+| `npm run start`     | Serve the production build                                          |
+| `npm run lint`      | ESLint                                                              |
+| `npm run typecheck` | TypeScript (`tsc --noEmit`)                                         |
+| `npm run seed`      | Upload `public/projects/hybrid-30kw` photos to Supabase and verify  |
+| `npm run photos`    | Reprocess source photos → WebP + thumbnails + OG images             |
+
+`photos` expects the originals in `C:/Users/Fouad/Desktop/SolarLink` (edit the
+paths at the top of `scripts/process-photos.mjs` if they move).
+
+## Content notes
+
+- The quote form stores submissions in `quote_requests` and shows them in
+  `/admin/quotes`.
+- WhatsApp redirect is optional: set `site.whatsapp` in `src/lib/site.ts`
+  (digits only, with country code). While empty, the form still saves the
+  request but offers no WhatsApp link.
+- Set `site.url` in `src/lib/site.ts` to the real deployment URL — it is used
+  for canonical URLs, Open Graph and the sitemap.
+- Project pages are statically generated from published rows and refreshed on
+  admin edits via `updateTag("projects")` + `revalidatePath`.
+- Uploads are resized to WebP on the server (max 1600px, 5 MB each, 8 files at
+  a time). BOQ PDFs are max 10 MB.
+
+## Deployment
+
+Deploy on Vercel and set the same three environment variables in the project
+settings. Production builds require real credentials — the local placeholder
+fallback is for development and build-time only.

@@ -2,6 +2,7 @@ import "server-only";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { cacheLife, cacheTag } from "next/cache";
+import { supabaseConfigured } from "@/lib/supabase/env";
 import { supabasePublic } from "@/lib/supabase/public";
 import { publicDocUrl, publicPhotoUrl, thumbUrl } from "@/lib/images";
 import { fallbackProjects, type Project, type Spec } from "@/lib/projects";
@@ -136,19 +137,32 @@ export function rowToProject(row: ProjectRow): Project {
   };
 }
 
-function configured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
+function isProductionBuild(): boolean {
+  // `next build` also sets NODE_ENV=production. The build must be able to
+  // succeed without live Supabase credentials (placeholders in .env.local).
+  return process.env.NEXT_PHASE === "phase-production-build";
 }
 
 function localFallback(): Project[] {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !isProductionBuild()) {
     throw new Error(
       "Supabase env vars are missing in production. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
     );
   }
-  console.warn("[solarlink] Supabase env missing — serving local fallback projects (dev only).");
+  console.warn(
+    "[solarlink] Supabase is not configured — serving local fallback projects. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local.",
+  );
+  return fallbackProjects;
+}
+
+/**
+ * Development-only safety net: if a real Supabase project is configured but
+ * unreachable (offline, paused project, bad URL), keep the site usable and
+ * make the reason obvious in the console. Production still fails loudly.
+ */
+function devFallback(context: string): Project[] | null {
+  if (process.env.NODE_ENV === "production") return null;
+  console.warn(`[solarlink] ${context} — serving local fallback projects (dev only).`);
   return fallbackProjects;
 }
 
@@ -157,7 +171,7 @@ export async function getPublishedProjects(): Promise<Project[]> {
   cacheLife("hours");
   cacheTag(PROJECTS_TAG);
 
-  if (!configured()) return localFallback();
+  if (!supabaseConfigured()) return localFallback();
 
   const { data, error } = await supabasePublic()
     .from("projects")
@@ -165,7 +179,11 @@ export async function getPublishedProjects(): Promise<Project[]> {
     .eq("published", true)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error(`Could not load projects: ${error.message}`);
+  if (error) {
+    const fallback = devFallback(`Could not load projects: ${error.message}`);
+    if (fallback) return fallback;
+    throw new Error(`Could not load projects: ${error.message}`);
+  }
   return (data as ProjectRow[]).map(rowToProject);
 }
 
@@ -174,7 +192,7 @@ export async function getPublishedProject(slug: string): Promise<Project | null>
   cacheLife("hours");
   cacheTag(PROJECTS_TAG);
 
-  if (!configured()) {
+  if (!supabaseConfigured()) {
     return localFallback().find((p) => p.slug === slug) ?? null;
   }
 
@@ -185,7 +203,11 @@ export async function getPublishedProject(slug: string): Promise<Project | null>
     .eq("published", true)
     .maybeSingle();
 
-  if (error) throw new Error(`Could not load project "${slug}": ${error.message}`);
+  if (error) {
+    const fallback = devFallback(`Could not load project "${slug}": ${error.message}`);
+    if (fallback) return fallback.find((p) => p.slug === slug) ?? null;
+    throw new Error(`Could not load project "${slug}": ${error.message}`);
+  }
   return data ? rowToProject(data as ProjectRow) : null;
 }
 
@@ -194,13 +216,17 @@ export async function getPublishedSlugs(): Promise<string[]> {
   cacheLife("hours");
   cacheTag(PROJECTS_TAG);
 
-  if (!configured()) return localFallback().map((p) => p.slug);
+  if (!supabaseConfigured()) return localFallback().map((p) => p.slug);
 
   const { data, error } = await supabasePublic()
     .from("projects")
     .select("slug")
     .eq("published", true);
 
-  if (error) throw new Error(`Could not load project slugs: ${error.message}`);
+  if (error) {
+    const fallback = devFallback(`Could not load project slugs: ${error.message}`);
+    if (fallback) return fallback.map((p) => p.slug);
+    throw new Error(`Could not load project slugs: ${error.message}`);
+  }
   return (data ?? []).map((r) => (r as { slug: string }).slug);
 }

@@ -67,8 +67,8 @@ export default async function AdminProjectsPage({
           const photos = p.project_images?.[0]?.count ?? 0;
           return (
             <div className="item" key={p.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               {cover ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img className="thumb" src={cover} alt="" />
               ) : (
                 <div className="thumb" />

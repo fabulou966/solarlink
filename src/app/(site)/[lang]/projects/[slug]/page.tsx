@@ -141,7 +141,7 @@ export default async function ProjectPage({
         </div>
       </main>
 
-      <Footer />
+      <Footer lang={L} />
     </>
   );
 }

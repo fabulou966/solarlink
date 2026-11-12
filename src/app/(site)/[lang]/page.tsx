@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
+import HowWeWork from "@/components/HowWeWork";
 import ProjectCard from "@/components/ProjectCard";
+import About from "@/components/About";
+import Faq from "@/components/Faq";
 import QuoteForm from "@/components/QuoteForm";
 import Footer from "@/components/Footer";
 import { dict, isLocale, type Locale } from "@/lib/i18n";
@@ -26,6 +29,8 @@ export default async function HomePage({
 
       <Services t={t} />
 
+      <HowWeWork t={t} />
+
       <section
         id="projects"
         style={{ background: "color-mix(in srgb, var(--line) 35%, transparent)" }}
@@ -41,15 +46,24 @@ export default async function HomePage({
         </div>
       </section>
 
+      <About t={t} />
+
+      <Faq t={t} />
+
       <section id="contact" className="band">
         <div className="w">
-          <h2>{t.c_t}</h2>
+          <h2>{t.contactTitle}</h2>
+          <ul className="contact">
+            <li>{t.contactWhatsapp}</li>
+            <li>{t.contactEmail}</li>
+            <li>{t.contactArea}</li>
+          </ul>
           <p className="sub">{t.c_s}</p>
           <QuoteForm t={t} lang={L} />
         </div>
       </section>
 
-      <Footer />
+      <Footer lang={L} />
     </>
   );
 }

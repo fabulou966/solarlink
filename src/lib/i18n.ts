@@ -64,6 +64,52 @@ export const dict = {
     photos: "الصور",
     downloadBoq: "تحميل جدول الكميات (BOQ)",
     boqMissing: "ملف BOQ غير متوفر لهذا المشروع",
+    // About
+    aboutTitle: "من نحن",
+    aboutText:
+      "SolarLink متخصصة في تركيب أنظمة الطاقة الشمسية والدعم الفني. نصمم النظام المناسب لاستهلاكك، ونركّبه ونشغّله، ونبقى معك للصيانة وحل الأعطال. نخدم Omdurman.",
+    // How we work
+    howTitle: "كيف نعمل",
+    howSteps: [
+      "1. المعاينة: نفهم احتياجك ونزور الموقع.",
+      "2. التصميم وعرض السعر: نحدد حجم النظام والمعدات ونرسل لك عرضًا واضحًا.",
+      "3. التركيب: نركّب الألواح والإنفرتر والبطاريات وحماية النظام.",
+      "4. التشغيل والفحص: نشغّل النظام ونتأكد من عمله ونشرح لك طريقة الاستخدام.",
+      "5. الدعم الفني: نتابع معك للصيانة وحل أي عطل.",
+    ],
+    // FAQ
+    faqTitle: "أسئلة شائعة",
+    faq: [
+      {
+        q: "كيف أحصل على عرض سعر؟",
+        a: "أرسل بياناتك عبر النموذج أو واتساب، وسنتواصل معك لفهم احتياجك وترتيب المعاينة.",
+      },
+      {
+        q: "ما حجم النظام المناسب لي؟",
+        a: "يعتمد على استهلاكك وأجهزتك ومساحة التركيب، ونحدده معك أثناء المعاينة.",
+      },
+      {
+        q: "كم يستغرق التركيب؟",
+        a: "يختلف حسب حجم النظام وموقعه، ونذكر المدة المتوقعة في عرض السعر.",
+      },
+      {
+        q: "هل تقدمون دعمًا فنيًا بعد التركيب؟",
+        a: "نعم، نقدم دعمًا فنيًا وصيانة وحل أعطال.",
+      },
+    ],
+    // Contact
+    contactTitle: "تواصل معنا",
+    contactWhatsapp: "واتساب: +249117027936",
+    contactEmail: "البريد: solarlinksd@gmail.com",
+    contactArea: "المنطقة: Omdurman",
+    // Privacy page
+    privacyTitle: "سياسة الخصوصية",
+    privacyBody: [
+      "عندما ترسل طلب عرض سعر عبر هذا الموقع، نحفظ الاسم ورقم الهاتف والمدينة ورسالتك. نستخدم هذه البيانات فقط للرد عليك وترتيب الخدمة التي طلبتها.",
+      "لا نبيع بياناتك ولا نشاركها مع أي جهة لأغراض إعلانية.",
+      "تُخزَّن البيانات لدى مزوّدي الاستضافة وقواعد البيانات الذين نستخدمهم لتشغيل الموقع.",
+      "يمكنك طلب حذف بياناتك في أي وقت عبر التواصل معنا على واتساب أو البريد الإلكتروني.",
+    ],
   },
   en: {
     dir: "ltr" as const,
@@ -120,6 +166,52 @@ export const dict = {
     photos: "Photos",
     downloadBoq: "Download BOQ",
     boqMissing: "No BOQ file available for this project yet",
+    // About
+    aboutTitle: "About us",
+    aboutText:
+      "SolarLink specializes in solar system installation and technical support. We size the system to your consumption, install and commission it, and stay with you for maintenance and fault finding. We serve Omdurman.",
+    // How we work
+    howTitle: "How we work",
+    howSteps: [
+      "1. Site visit: we understand your needs and visit the site.",
+      "2. Design and quote: we size the system and equipment and send a clear quote.",
+      "3. Installation: we install the panels, inverter, batteries and protection.",
+      "4. Commissioning: we start the system, check it works and show you how to use it.",
+      "5. Support: we stay available for maintenance and fault finding.",
+    ],
+    // FAQ
+    faqTitle: "FAQ",
+    faq: [
+      {
+        q: "How do I get a quote?",
+        a: "Send your details through the form or WhatsApp and we will contact you to understand your needs and arrange a site visit.",
+      },
+      {
+        q: "What system size do I need?",
+        a: "It depends on your consumption, your appliances and the installation space. We work it out with you during the site visit.",
+      },
+      {
+        q: "How long does installation take?",
+        a: "It depends on the system size and location. We give the expected time in the quote.",
+      },
+      {
+        q: "Do you offer technical support after installation?",
+        a: "Yes, we provide technical support, maintenance and fault finding.",
+      },
+    ],
+    // Contact
+    contactTitle: "Contact",
+    contactWhatsapp: "WhatsApp: +249117027936",
+    contactEmail: "Email: solarlinksd@gmail.com",
+    contactArea: "Area: Omdurman",
+    // Privacy page
+    privacyTitle: "Privacy policy",
+    privacyBody: [
+      "When you send a quote request through this site, we store your name, phone number, city and message. We use this data only to reply to you and arrange the service you asked for.",
+      "We do not sell your data or share it for advertising.",
+      "The data is stored with the hosting and database providers we use to run the site.",
+      "You can ask us to delete your data at any time by contacting us on WhatsApp or email.",
+    ],
   },
 };
 

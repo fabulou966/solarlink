@@ -22,7 +22,7 @@ export default function ShareLinks({
 
   const wa = () =>
     window.open(
-      `https://wa.me/?text=${encodeURIComponent(`${title}\n${url()}`)}`,
+      `https://wa.me/?text=${encodeURIComponent(`${title}\n${text}\n${url()}`)}`,
       "_blank",
     );
   const fb = () =>

@@ -11,7 +11,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, existsSync } from "node:fs";
-import { join, basename } from "node:path";
+import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
 const ENV_FILE = join(ROOT, ".env.local");

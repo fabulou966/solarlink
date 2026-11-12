@@ -1,0 +1,14 @@
+[build]
+  command = "node -e \"require('fs').rmSync('src/proxy.ts',{force:true})\" && npx next build --webpack"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/"
+  to = "/ar"
+  status = 302
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

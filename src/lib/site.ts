@@ -8,7 +8,7 @@ export const site = {
   // Example: "218912345678"
   // TODO: not ready yet. Ask the owner before launching the contact step.
   // While empty, the quote form shows a "number not added" notice.
-  whatsapp: "",
+  whatsapp: "249117027936",
 
   // Public site URL (used for SEO / Open Graph / sitemap).
   // TODO: set to the real Vercel URL once deployed.

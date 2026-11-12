@@ -52,7 +52,7 @@ export default function PhotoManager({
 
   useEffect(() => {
     if (addState.ok) {
-      fileRef.current && (fileRef.current.value = "");
+      if (fileRef.current) fileRef.current.value = "";
       router.refresh();
     }
   }, [addState, router]);

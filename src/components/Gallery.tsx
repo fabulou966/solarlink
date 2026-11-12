@@ -27,8 +27,9 @@ export default function Gallery({
 
   // Keyboard navigation + scroll lock while the lightbox is open.
   // In RTL, "next" is to the left, so the arrow keys mirror.
+  const isOpen = open !== null;
   useEffect(() => {
-    if (open === null) return;
+    if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
       if (e.key === "ArrowLeft") go(rtl ? 1 : -1);
@@ -40,7 +41,7 @@ export default function Gallery({
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open === null, close, go, rtl]);
+  }, [isOpen, close, go, rtl]);
 
   return (
     <>
