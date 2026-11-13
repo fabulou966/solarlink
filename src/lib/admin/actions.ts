@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { PROJECTS_TAG } from "@/lib/data/projects";
+import { str, numOrNull, slugify, refreshPublicPages } from "./actions-utils";
 
 const BUCKET = "project-photos";
 const DOCS_BUCKET = "project-docs";
@@ -17,32 +18,6 @@ const MAX_FILES = 8;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
 export type ActionState = { error?: string; ok?: boolean };
-
-function str(fd: FormData, key: string, max = 5000): string {
-  return String(fd.get(key) ?? "").trim().slice(0, max);
-}
-
-function numOrNull(fd: FormData, key: string): number | null {
-  const raw = str(fd, key, 20).replace(",", ".");
-  if (!raw) return null;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
-}
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-function refreshPublicPages() {
-  updateTag(PROJECTS_TAG);
-  revalidatePath("/ar");
-  revalidatePath("/en");
-}
 
 // ── Auth ────────────────────────────────────────────────────────
 
@@ -179,7 +154,6 @@ export async function deleteProject(fd: FormData) {
     redirect("/admin?msg=confirm");
   }
 
-  // Remove the photo objects first (best effort), then the row (cascade deletes images).
   const paths = (project.project_images ?? []).map((i: { path: string }) => i.path);
   if (paths.length) {
     await supabaseAdmin().storage.from(BUCKET).remove(paths);
@@ -192,7 +166,7 @@ export async function deleteProject(fd: FormData) {
   revalidatePath("/admin");
 }
 
-// ── BOQ (bill of quantities) ────────────────────────────────────
+// ── BOQ (bill of quantities) ──────────────────────────────────
 
 export async function uploadBoq(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const { supabase } = await requireAdmin();
@@ -228,7 +202,6 @@ export async function uploadBoq(_prev: ActionState, fd: FormData): Promise<Actio
     return { error: error.message };
   }
 
-  // Replacing the file: drop the previous object (best effort).
   const previous = (project as { boq_path: string | null }).boq_path;
   if (previous) await supabaseAdmin().storage.from(DOCS_BUCKET).remove([previous]);
 
@@ -258,7 +231,7 @@ export async function removeBoq(fd: FormData) {
   revalidatePath(`/admin/projects/${projectId}`);
 }
 
-// ── Photos ──────────────────────────────────────────────────────
+// ── Photos ────────────────────────────────────────────────────
 
 async function nextSortOrder(
   supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"],
@@ -343,7 +316,6 @@ export async function addPhotos(_prev: ActionState, fd: FormData): Promise<Actio
     if (!firstPath) firstPath = fullPath;
   }
 
-  // First-ever photo becomes the cover.
   const { count } = await supabase
     .from("project_images")
     .select("id", { count: "exact", head: true })

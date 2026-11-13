@@ -37,17 +37,17 @@ type ProjectRow = {
 
 const SELECT = "*, project_images(path, caption_ar, caption_en, sort_order)";
 
-function num(v: number | string | null | undefined): number | null {
+export function num(v: number | string | null | undefined): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
-function fmt(n: number): string {
+export function fmt(n: number): string {
   return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2)));
 }
 
-function summaryOf(systemKw: number | null, pvKwp: number | null, batteryKwh: number | null) {
+export function summaryOf(systemKw: number | null, pvKwp: number | null, batteryKwh: number | null) {
   const ar: string[] = [];
   const en: string[] = [];
   if (pvKwp !== null) {
