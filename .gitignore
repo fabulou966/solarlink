@@ -19,6 +19,7 @@
 
 # netlify
 .netlify/
+.agents/
 
 # production
 /build
